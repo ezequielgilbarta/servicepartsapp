@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { registrarPago } from '@/actions/ventaDetalle'
 import { TIPOS_PAGO, TIPO_PAGO_LABELS } from '@/lib/utils'
+import { formatMoneyInput, parseMoneyInput } from '@/lib/utils'
 
 type Props = {
   ventaId: string
@@ -12,6 +13,11 @@ type Props = {
 export default function RegistrarPago({ ventaId, saldoPendiente }: Props) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [monto, setMonto] = useState(
+  saldoPendiente > 0
+    ? formatMoneyInput(String(saldoPendiente))
+    : ''
+)
 
   function handleSubmit(formData: FormData) {
     formData.append('ventaId', ventaId)
@@ -43,14 +49,18 @@ export default function RegistrarPago({ ventaId, saldoPendiente }: Props) {
           <div className="relative">
             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
             <input
-              type="number"
-              name="monto"
-              required
-              min="1"
-              step="0.01"
-              defaultValue={saldoPendiente > 0 ? saldoPendiente : ''}
-              placeholder="0"
+              type="text"
+              inputMode="decimal"
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+              onBlur={() => setMonto(formatMoneyInput(monto))}
+              placeholder="0,00"
               className="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            />
+            <input
+              type="hidden"
+              name="monto"
+              value={parseMoneyInput(monto)}
             />
           </div>
         </div>

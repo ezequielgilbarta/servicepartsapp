@@ -2,30 +2,12 @@
 
 import { useState } from 'react'
 import { crearVenta } from '@/actions/ventas'
+import { formatMoneyInput, parseMoneyInput } from '@/lib/utils'
 
 type Cliente = {
   id: string
   nombre: string
   telefono: string
-}
-
-function formatearMoneda(valor: string) {
-  const limpio = valor
-    .replace(/\./g, '')
-    .replace(',', '.')
-
-  const numero = Number(limpio)
-
-  if (isNaN(numero)) return ''
-
-  return numero.toLocaleString('es-AR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
-}
-
-function obtenerValorNumerico(valor: string) {
-  return valor.replace(/\./g, '').replace(',', '.')
 }
 
 export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
@@ -107,7 +89,7 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
                     inputMode="decimal"
                     value={total}
                     onChange={(e) => setTotal(e.target.value)}
-                    onBlur={() => setTotal(formatearMoneda(total))}
+                    onBlur={() => setTotal(formatMoneyInput(total))}
                     placeholder="0,00"
                     className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
                   />
@@ -115,7 +97,7 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
                   <input
                     type="hidden"
                     name="total"
-                    value={total.replace(/\./g, '').replace(',', '.')}
+                    value={parseMoneyInput(total)}
                   />
                 </div>
               </div>
@@ -157,7 +139,7 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
                       inputMode="decimal"
                       value={costoEnvio}
                       onChange={(e) => setCostoEnvio(e.target.value)}
-                      onBlur={() => setCostoEnvio(formatearMoneda(costoEnvio))}
+                      onBlur={() => setCostoEnvio(formatMoneyInput(costoEnvio))}
                       placeholder="0,00"
                       className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
                     />
@@ -165,7 +147,7 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
                     <input
                       type="hidden"
                       name="costoEnvio"
-                      value={costoEnvio.replace(/\./g, '').replace(',', '.')}
+                      value={parseMoneyInput(costoEnvio)}
                     />
                   </div>
                 </div>

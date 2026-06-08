@@ -1,9 +1,9 @@
 import Link from 'next/link'
 
 const NAV_ITEMS = [
-  { href: '/ventas', label: 'Ventas', icon: '📦' },
-  { href: '/clientes', label: 'Clientes', icon: '👤' },
-  { href: '/productos', label: 'Productos', icon: '🔧' },
+  { href: '/ventas', label: 'Ventas'},
+  { href: '/clientes', label: 'Clientes'},
+  { href: '/productos', label: 'Productos'},
 ]
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { crearVenta } from '@/actions/ventas'
+import { crearVenta } from '@/actions/ventas/ventas'
 import { formatMoneyInput, parseMoneyInput } from '@/lib/utils'
 
 type Cliente = {

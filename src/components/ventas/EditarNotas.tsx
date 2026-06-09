@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { actualizarNotas } from '@/actions/ventaDetalle'
+import { actualizarNotas } from '@/actions/ventas/ventaDetalle'
 
 type Props = {
   ventaId: string

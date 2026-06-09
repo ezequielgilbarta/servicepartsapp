@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { actualizarEstadoVenta } from '@/actions/ventaDetalle'
+import { actualizarEstadoVenta } from '@/actions/ventas/ventaDetalle'
 import { ESTADO_VENTA_LABELS, ESTADO_VENTA_COLORS, ESTADOS_VENTA } from '@/lib/utils'
 
 type Props = {

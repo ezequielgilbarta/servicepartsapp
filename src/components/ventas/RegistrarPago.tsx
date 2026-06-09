@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { registrarPago } from '@/actions/ventaDetalle'
+import { registrarPago } from '@/actions/ventas/ventaDetalle'
 import { TIPOS_PAGO, TIPO_PAGO_LABELS } from '@/lib/utils'
 import { formatMoneyInput, parseMoneyInput } from '@/lib/utils'
 

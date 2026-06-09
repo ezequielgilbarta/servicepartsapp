@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { actualizarProveedorEstado, actualizarItemProveedor } from '@/actions/ventaDetalle'
+import { actualizarProveedorEstado, actualizarItemProveedor } from '@/actions/ventas/ventaDetalle'
 import {
   PROVEEDOR_ESTADO_LABELS,
   PROVEEDOR_ESTADO_COLORS,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
-import { eliminarPago } from '@/actions/ventaDetalle'
+import { eliminarPago } from '@/actions/ventas/ventaDetalle'
 
 type Props = {
   pagoId: string

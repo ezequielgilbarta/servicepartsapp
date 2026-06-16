@@ -67,6 +67,14 @@ export function formatMoneyInput(valor: string) {
   })
 }
 
+// formatear números provenientes de la base de datos para mostrarlos en inputs. Para prevenir que pase 14140.21 (servidor) --> 1.414.021,00 (cliente)
+export function formatMoneyFromNumber(valor: number) {
+  return valor.toLocaleString('es-AR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
+
 // convertir el valor del input para enviarlo al servidor.
 export function parseMoneyInput(valor: string) {
   return valor.replace(/\./g, '').replace(',', '.')

@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { registrarPago } from '@/actions/ventas/ventaDetalle'
 import { TIPOS_PAGO, TIPO_PAGO_LABELS } from '@/lib/utils'
-import { formatMoneyInput, parseMoneyInput } from '@/lib/utils'
+import { formatMoneyInput, formatMoneyFromNumber, parseMoneyInput } from '@/lib/utils'
 
 type Props = {
   ventaId: string
@@ -15,7 +15,7 @@ export default function RegistrarPago({ ventaId, saldoPendiente }: Props) {
   const [isPending, startTransition] = useTransition()
   const [monto, setMonto] = useState(
   saldoPendiente > 0
-    ? formatMoneyInput(String(saldoPendiente))
+    ? formatMoneyFromNumber(saldoPendiente)
     : ''
 )
 

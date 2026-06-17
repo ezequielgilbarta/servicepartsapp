@@ -3,6 +3,11 @@
 import { useState } from 'react'
 import { formatMoneyInput, formatMoneyFromNumber, parseMoneyInput } from '@/lib/utils'
 
+const TIPOS_ELECTRODOMESTICO = [
+  'Lavarropas', 'Heladera', 'Freezer', 'Lavavajillas',
+  'Microondas', 'Horno', 'Cocina', 'Aire acondicionado', 'Termotanque', 'Otro',
+]
+
 type Producto = {
   id: string
   nombre: string
@@ -22,19 +27,6 @@ type Props = {
   submitLabel: string
 }
 
-const TIPOS_ELECTRODOMESTICO = [
-  'Lavarropas',
-  'Heladera',
-  'Freezer',
-  'Lavavajillas',
-  'Microondas',
-  'Horno',
-  'Cocina',
-  'Aire acondicionado',
-  'Termotanque',
-  'Otro',
-]
-
 export default function ProductoForm({ action, producto, submitLabel }: Props) {
   const [costoProveedor, setCostoProveedor] = useState(
     producto?.costoProveedor
@@ -47,18 +39,16 @@ export default function ProductoForm({ action, producto, submitLabel }: Props) {
       ? formatMoneyFromNumber(producto.precioReferencia)
       : ''
   )
-
+  
   return (
-    <form action={action} className="space-y-5">
+    <form action={action} className="space-y-6">
       {producto && <input type="hidden" name="id" value={producto.id} />}
 
       {/* Identificación */}
       <div>
-        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-          Identificación
-        </h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Identificación</h3>
+        <div className="space-y-4">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nombre <span className="text-red-500">*</span>
             </label>
@@ -71,136 +61,129 @@ export default function ProductoForm({ action, producto, submitLabel }: Props) {
             />
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Marca <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="marca"
+                required
+                defaultValue={producto?.marca}
+                placeholder="Samsung"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Modelo <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="modelo"
+                required
+                defaultValue={producto?.modelo}
+                placeholder="WW80J5555MW"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tipo de electrodoméstico <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="tipoElectrodomestico"
+                required
+                defaultValue={producto?.tipoElectrodomestico ?? ''}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+              >
+                <option value="" disabled>Seleccioná un tipo</option>
+                {TIPOS_ELECTRODOMESTICO.map((t) => (
+                  <option key={t} value={t.toLowerCase()}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Código interno <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="codigoInterno"
+                required
+                defaultValue={producto?.codigoInterno}
+                placeholder="LAV-001"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Marca <span className="text-red-500">*</span>
-            </label>
-            <input
-              name="marca"
-              required
-              defaultValue={producto?.marca}
-              placeholder="Samsung"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+            <textarea
+              name="descripcion"
+              defaultValue={producto?.descripcion ?? ''}
+              placeholder="Descripción del repuesto..."
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
             />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tipo de electrodoméstico <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="tipoElectrodomestico"
-              required
-              defaultValue={producto?.tipoElectrodomestico ?? ''}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
-            >
-              <option value="" disabled>Seleccioná un tipo</option>
-              {TIPOS_ELECTRODOMESTICO.map((tipo) => (
-                <option key={tipo} value={tipo.toLowerCase()}>
-                  {tipo}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Modelo <span className="text-red-500">*</span>
-            </label>
-            <input
-              name="modelo"
-              required
-              defaultValue={producto?.modelo}
-              placeholder="WW80J5555MW"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Código interno <span className="text-red-500">*</span>
-            </label>
-            <input
-              name="codigoInterno"
-              required
-              defaultValue={producto?.codigoInterno}
-              placeholder="LAV-001"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Descripción
-          </label>
-          <textarea
-            name="descripcion"
-            defaultValue={producto?.descripcion ?? ''}
-            placeholder="Descripción del repuesto..."
-            rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
-          />
         </div>
       </div>
 
-      {/* Precios y proveedor */}
+      {/* Precios */}
       <div>
-        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-          Precios y proveedor
-        </h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Costo proveedor <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={costoProveedor}
-                onChange={(e) => setCostoProveedor(e.target.value)}
-                onBlur={() => setCostoProveedor(formatMoneyInput(costoProveedor))}
-                placeholder="0,00"
-                className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
-              <input
-                type="hidden"
-                name="costoProveedor"
-                value={parseMoneyInput(costoProveedor)}
-              />
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Precios y proveedor</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Costo proveedor <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={costoProveedor}
+                  onChange={(e) => setCostoProveedor(e.target.value)}
+                  onBlur={() => setCostoProveedor(formatMoneyInput(costoProveedor))}
+                  placeholder="0,00"
+                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+                <input
+                  type="hidden"
+                  name="costoProveedor"
+                  value={parseMoneyInput(costoProveedor)}
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Costo de referencia</p>
             </div>
-            <p className="text-xs text-gray-400 mt-1">Costo de referencia, no necesariamente el real de cada venta</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Precio de referencia
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={precioReferencia}
-                onChange={(e) => setPrecioReferencia(e.target.value)}
-                onBlur={() => setPrecioReferencia(formatMoneyInput(precioReferencia))}
-                placeholder="0,00"
-                className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
-              <input
-                type="hidden"
-                name="precioReferencia"
-                value={parseMoneyInput(precioReferencia)}
-              />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Precio de referencia</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={precioReferencia}
+                  onChange={(e) => setPrecioReferencia(e.target.value)}
+                  onBlur={() => setPrecioReferencia(formatMoneyInput(precioReferencia))}
+                  placeholder="0,00"
+                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+                <input
+                  type="hidden"
+                  name="precioReferencia"
+                  value={parseMoneyInput(precioReferencia)}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Proveedor habitual
-            </label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Proveedor habitual</label>
             <input
               name="proveedorHabitual"
               defaultValue={producto?.proveedorHabitual ?? ''}

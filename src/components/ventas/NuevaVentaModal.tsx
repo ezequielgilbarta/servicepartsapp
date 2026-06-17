@@ -4,11 +4,7 @@ import { useState } from 'react'
 import { crearVenta } from '@/actions/ventas/ventas'
 import { formatMoneyInput, parseMoneyInput } from '@/lib/utils'
 
-type Cliente = {
-  id: string
-  nombre: string
-  telefono: string
-}
+type Cliente = { id: string; nombre: string; telefono: string }
 
 export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
   const [open, setOpen] = useState(false)
@@ -17,47 +13,47 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
   const [total, setTotal] = useState('')
   const [costoEnvio, setCostoEnvio] = useState('')
 
+  const manana = new Date()
+  manana.setDate(manana.getDate() + 1)
+  const minFecha = manana.toISOString().split('T')[0]
+
   async function handleSubmit(formData: FormData) {
     setLoading(true)
     await crearVenta(formData)
   }
 
-  const manana = new Date()
-  manana.setDate(manana.getDate() + 1)
-
-  const minFecha = manana.toISOString().split('T')[0]
+  function handleClose() {
+    setOpen(false)
+    setTipoEntrega('RETIRO')
+    setTotal('')
+    setCostoEnvio('')
+    setLoading(false)
+  }
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+        className="inline-flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
       >
         <span className="text-lg leading-none">+</span>
-        Nueva venta
+        <span className="hidden sm:inline">Nueva venta</span>
+        <span className="sm:hidden">Nueva</span>
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setOpen(false)}
-          />
+          <div className="absolute inset-0 bg-black/40" onClick={handleClose} />
 
-          {/* Modal */}
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-semibold text-gray-900">Nueva venta</h2>
-              <button
-                onClick={() => setOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors text-xl leading-none"
-              >
-                ×
-              </button>
+          {/* Modal — bottom sheet en mobile, centrado en desktop */}
+          <div className="relative bg-white w-full sm:max-w-lg sm:mx-4 sm:rounded-xl rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+              <h2 className="text-base font-semibold text-gray-900">Nueva venta</h2>
+              <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none p-1">×</button>
             </div>
 
-            <form action={handleSubmit} className="space-y-4">
+            <form action={handleSubmit} className="px-5 py-4 space-y-4">
               {/* Cliente */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -66,13 +62,11 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
                 <select
                   name="clienteId"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
                 >
                   <option value="">Seleccioná un cliente</option>
                   {clientes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nombre} — {c.telefono}
-                    </option>
+                    <option key={c.id} value={c.id}>{c.nombre} — {c.telefono}</option>
                   ))}
                 </select>
               </div>
@@ -93,12 +87,7 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
                     placeholder="0,00"
                     className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
                   />
-
-                  <input
-                    type="hidden"
-                    name="total"
-                    value={parseMoneyInput(total)}
-                  />
+                  <input type="hidden" name="total" value={parseMoneyInput(total)} />
                 </div>
               </div>
 
@@ -119,19 +108,17 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
                           : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
                       }`}
                     >
-                      {tipo === 'RETIRO' ? 'Retiro en local' : 'Envío a domicilio'}
+                      {tipo === 'RETIRO' ? 'Retiro' : 'Envío'}
                     </button>
                   ))}
                 </div>
                 <input type="hidden" name="tipoEntrega" value={tipoEntrega} />
               </div>
 
-              {/* Costo envío (solo si es envío) */}
+              {/* Costo envío */}
               {tipoEntrega === 'ENVIO' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Costo de envío
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Costo de envío</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                     <input
@@ -143,21 +130,14 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
                       placeholder="0,00"
                       className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
                     />
-
-                    <input
-                      type="hidden"
-                      name="costoEnvio"
-                      value={parseMoneyInput(costoEnvio)}
-                    />
+                    <input type="hidden" name="costoEnvio" value={parseMoneyInput(costoEnvio)} />
                   </div>
                 </div>
               )}
 
-              {/* Fecha entrega */}
+              {/* Fecha */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Fecha de entrega estimada
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de entrega estimada</label>
                 <input
                   type="date"
                   name="fechaEntrega"
@@ -168,9 +148,7 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
 
               {/* Notas */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Notas
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
                 <textarea
                   name="notas"
                   rows={2}
@@ -179,18 +157,18 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
                 />
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-3 pb-2 pt-1">
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
-                  className="flex-1 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={handleClose}
+                  className="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                  className="flex-1 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
                 >
                   {loading ? 'Creando...' : 'Crear venta'}
                 </button>

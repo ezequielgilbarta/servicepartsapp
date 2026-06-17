@@ -15,9 +15,7 @@ import {
   TIPO_PAGO_LABELS,
 } from '@/lib/utils'
 
-type Props = {
-  params: { id: string }
-}
+type Props = { params: { id: string } }
 
 export default async function VentaDetallePage({ params }: Props) {
   requireAuth()
@@ -27,17 +25,13 @@ export default async function VentaDetallePage({ params }: Props) {
     include: {
       cliente: true,
       pagos: { orderBy: { fecha: 'asc' } },
-      items: {
-        include: { producto: true },
-        orderBy: { id: 'asc' },
-      },
+      items: { include: { producto: true }, orderBy: { id: 'asc' } },
     },
   })
 
   if (!venta) notFound()
 
-  // ── Cálculos ───────────────────────────────────────────────────────────────
-  const totalPagado = venta.pagos.reduce((sum, p) => sum + p.monto, 0)
+  const totalPagado = venta.pagos.reduce((s, p) => s + p.monto, 0)
   const saldoPendiente = venta.total + (venta.costoEnvio ?? 0) - totalPagado
   const itemsRecibidos = venta.items.filter((i) => i.proveedorEstado === 'RECIBIDO').length
   const totalItems = venta.items.length
@@ -46,37 +40,32 @@ export default async function VentaDetallePage({ params }: Props) {
 
   return (
     <AppLayout>
-      <div className="p-8 max-w-5xl">
+      <div className="p-4 md:p-8 max-w-5xl">
 
         {/* Breadcrumb */}
         <Link href="/ventas" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
           ← Ventas
         </Link>
 
-        {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="mt-4 flex items-start justify-between gap-4">
+        {/* Header */}
+        <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">{venta.cliente.nombre}</h1>
-            <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+            <h1 className="text-xl md:text-2xl font-semibold text-gray-900">{venta.cliente.nombre}</h1>
+            <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500">
               <span>{venta.cliente.telefono}</span>
               {venta.cliente.direccion && (
                 <>
-                  <span>·</span>
+                  <span className="hidden md:inline">·</span>
                   <span>{venta.cliente.direccion}</span>
                 </>
               )}
             </div>
           </div>
-
-          <CambiarEstado
-            ventaId={venta.id}
-            estadoActual={venta.estado}
-            todosRecibidos={todosRecibidos}
-          />
+          <CambiarEstado ventaId={venta.id} estadoActual={venta.estado} todosRecibidos={todosRecibidos} />
         </div>
 
-        {/* ── Info rápida ─────────────────────────────────────────────────── */}
-        <div className="mt-6 grid grid-cols-4 gap-3">
+        {/* Info rápida - 2 cols mobile, 4 desktop */}
+        <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-white border border-gray-200 rounded-xl p-4">
             <p className="text-xs text-gray-400 mb-1">Creada</p>
             <p className="text-sm font-medium text-gray-900">{formatDate(venta.createdAt)}</p>
@@ -87,9 +76,7 @@ export default async function VentaDetallePage({ params }: Props) {
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4">
             <p className="text-xs text-gray-400 mb-1">Tipo de entrega</p>
-            <p className="text-sm font-medium text-gray-900">
-              {TIPO_ENTREGA_LABELS[venta.tipoEntrega] ?? venta.tipoEntrega}
-            </p>
+            <p className="text-sm font-medium text-gray-900">{TIPO_ENTREGA_LABELS[venta.tipoEntrega] ?? venta.tipoEntrega}</p>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4">
             <p className="text-xs text-gray-400 mb-1">Items recibidos</p>
@@ -103,45 +90,40 @@ export default async function VentaDetallePage({ params }: Props) {
           </div>
         </div>
 
-        {/* ── Items ───────────────────────────────────────────────────────── */}
-        <div className="mt-6 bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
+        {/* Items */}
+        <div className="mt-5 bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="px-4 md:px-5 py-4 border-b border-gray-100">
             <h2 className="text-sm font-semibold text-gray-900">Productos</h2>
           </div>
-
           {venta.items.length === 0 ? (
-            <div className="px-5 py-8 text-center text-sm text-gray-400">
-              No hay productos en esta venta
-            </div>
+            <div className="px-5 py-8 text-center text-sm text-gray-400">No hay productos en esta venta</div>
           ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-5 py-3">
-                    Producto
-                  </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-5 py-3">
-                    Cant. × Precio
-                  </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-5 py-3">
-                    Estado proveedor
-                  </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-5 py-3">
-                    Seguimiento
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {venta.items.map((item) => (
-                  <ItemRow key={item.id} item={item} />
-                ))}
-              </tbody>
-            </table>
+            <>
+              {/* Tabla desktop */}
+              <div className="hidden md:block">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100">
+                      {['Producto', 'Cant. × Precio', 'Estado proveedor', 'Seguimiento'].map((h) => (
+                        <th key={h} className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-5 py-3">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {venta.items.map((item) => <ItemRow key={item.id} item={item} />)}
+                  </tbody>
+                </table>
+              </div>
+              {/* Cards mobile */}
+              <div className="md:hidden divide-y divide-gray-100">
+                {venta.items.map((item) => <ItemRow key={item.id} item={item} mobile />)}
+              </div>
+            </>
           )}
         </div>
 
-        {/* ── Resumen financiero + Pagos ──────────────────────────────────── */}
-        <div className="mt-6 grid grid-cols-2 gap-6">
+        {/* Resumen + Pagos: stack en mobile, grid en desktop */}
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
 
           {/* Resumen financiero */}
           <div className="bg-white border border-gray-200 rounded-xl p-5">
@@ -176,7 +158,6 @@ export default async function VentaDetallePage({ params }: Props) {
               <h2 className="text-sm font-semibold text-gray-900">Pagos</h2>
               <RegistrarPago ventaId={venta.id} saldoPendiente={saldoPendiente} />
             </div>
-
             {venta.pagos.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-4">Sin pagos registrados</p>
             ) : (
@@ -197,8 +178,8 @@ export default async function VentaDetallePage({ params }: Props) {
           </div>
         </div>
 
-        {/* ── Notas ───────────────────────────────────────────────────────── */}
-        <div className="mt-6 bg-white border border-gray-200 rounded-xl p-5">
+        {/* Notas */}
+        <div className="mt-5 bg-white border border-gray-200 rounded-xl p-5">
           <h2 className="text-sm font-semibold text-gray-900 mb-3">Notas</h2>
           <EditarNotas ventaId={venta.id} notas={venta.notas} />
         </div>

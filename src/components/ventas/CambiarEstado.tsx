@@ -4,11 +4,7 @@ import { useState, useTransition } from 'react'
 import { actualizarEstadoVenta } from '@/actions/ventas/ventaDetalle'
 import { ESTADO_VENTA_LABELS, ESTADO_VENTA_COLORS, ESTADOS_VENTA } from '@/lib/utils'
 
-type Props = {
-  ventaId: string
-  estadoActual: string
-  todosRecibidos: boolean
-}
+type Props = { ventaId: string; estadoActual: string; todosRecibidos: boolean }
 
 export default function CambiarEstado({ ventaId, estadoActual, todosRecibidos }: Props) {
   const [open, setOpen] = useState(false)
@@ -20,32 +16,28 @@ export default function CambiarEstado({ ventaId, estadoActual, todosRecibidos }:
   }
 
   return (
-    <div className="flex items-center gap-3">
-      {/* Badge estado actual */}
+    <div className="flex flex-wrap items-center gap-2">
       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${ESTADO_VENTA_COLORS[estadoActual]}`}>
         {ESTADO_VENTA_LABELS[estadoActual]}
       </span>
 
-      {/* Sugerencia si todos los items están recibidos */}
       {todosRecibidos && estadoActual !== 'LISTO_ENTREGA' && estadoActual !== 'ENTREGADO' && (
         <button
           onClick={() => handleChange('LISTO_ENTREGA')}
           disabled={isPending}
           className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-600 text-white rounded-full text-xs font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
         >
-          <span>✓</span>
-          Marcar listo para entregar
+          ✓ Marcar listo
         </button>
       )}
 
-      {/* Dropdown cambio manual */}
       <div className="relative">
         <button
           onClick={() => setOpen(!open)}
           disabled={isPending}
           className="text-xs text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-gray-400 transition-colors disabled:opacity-50"
         >
-          {isPending ? 'Guardando...' : 'Cambiar estado ▾'}
+          {isPending ? 'Guardando...' : 'Cambiar ▾'}
         </button>
 
         {open && (
@@ -56,12 +48,12 @@ export default function CambiarEstado({ ventaId, estadoActual, todosRecibidos }:
                 <button
                   key={estado}
                   onClick={() => handleChange(estado)}
-                  className={`w-full text-left px-4 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between ${
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between ${
                     estado === estadoActual ? 'font-medium text-gray-900' : 'text-gray-700'
                   }`}
                 >
                   {ESTADO_VENTA_LABELS[estado]}
-                  {estado === estadoActual && <span className="text-gray-400">✓</span>}
+                  {estado === estadoActual && <span className="text-gray-400 text-xs">✓</span>}
                 </button>
               ))}
             </div>

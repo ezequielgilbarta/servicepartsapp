@@ -17,7 +17,8 @@ export default function ClienteForm({ action, cliente, submitLabel }: Props) {
     <form action={action} className="space-y-4">
       {cliente && <input type="hidden" name="id" value={cliente.id} />}
 
-      <div className="grid grid-cols-2 gap-4">
+      {/* En mobile se apilan, en desktop van en dos columnas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Nombre <span className="text-red-500">*</span>
@@ -30,7 +31,6 @@ export default function ClienteForm({ action, cliente, submitLabel }: Props) {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
         </div>
-
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Teléfono <span className="text-red-500">*</span>
@@ -46,9 +46,7 @@ export default function ClienteForm({ action, cliente, submitLabel }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Dirección
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
         <input
           name="direccion"
           defaultValue={cliente?.direccion ?? ''}
@@ -58,9 +56,7 @@ export default function ClienteForm({ action, cliente, submitLabel }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Notas
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
         <textarea
           name="notas"
           defaultValue={cliente?.notas ?? ''}

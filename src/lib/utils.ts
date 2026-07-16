@@ -41,6 +41,18 @@ export const TIPO_ENTREGA_LABELS: Record<string, string> = {
   ENVIO: 'Envío a domicilio',
 }
 
+// Fechas/horas: la implementación real vive en '@/lib/datetime', que es el
+// único punto de configuración de la timezone del sistema. Se re-exporta
+// acá para no romper los imports existentes (`from '@/lib/utils'`).
+export {
+  APP_TIMEZONE,
+  formatDate,
+  formatDateTime,
+  toDateInputValue,
+  dateInputToInstant,
+  todayInputValue,
+} from './datetime'
+
 // mostrar dinero en tablas, cards, resúmenes, listados.
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('es-AR', {
@@ -78,15 +90,6 @@ export function formatMoneyFromNumber(valor: number) {
 // convertir el valor del input para enviarlo al servidor.
 export function parseMoneyInput(valor: string) {
   return valor.replace(/\./g, '').replace(',', '.')
-}
-
-export function formatDate(date: Date | string | null | undefined): string {
-  if (!date) return '—'
-  return new Intl.DateTimeFormat('es-AR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(new Date(date))
 }
 
 export const ESTADOS_VENTA = [

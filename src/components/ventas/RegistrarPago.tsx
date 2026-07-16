@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { registrarPago } from '@/actions/ventas/ventaDetalle'
 import { TIPOS_PAGO, TIPO_PAGO_LABELS } from '@/lib/utils'
 import { formatMoneyInput, formatMoneyFromNumber, parseMoneyInput } from '@/lib/utils'
+import { todayInputValue } from '@/lib/datetime'
 
 type Props = { ventaId: string; saldoPendiente: number }
 
@@ -74,7 +75,7 @@ export default function RegistrarPago({ ventaId, saldoPendiente }: Props) {
               <input
                 type="date"
                 name="fecha"
-                defaultValue={new Date().toISOString().split('T')[0]}
+                defaultValue={todayInputValue()}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
               />
             </div>

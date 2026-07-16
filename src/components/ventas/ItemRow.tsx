@@ -9,6 +9,7 @@ import {
   formatDate,
   formatCurrency,
 } from '@/lib/utils'
+import { toDateInputValue } from '@/lib/datetime'
 
 type Item = {
   id: string
@@ -25,11 +26,6 @@ type Item = {
     modelo: string
     codigoInterno: string
   }
-}
-
-function toInputDate(date: Date | null | undefined): string {
-  if (!date) return ''
-  return new Date(date).toISOString().split('T')[0]
 }
 
 type Props = { item: Item; mobile?: boolean }
@@ -66,7 +62,7 @@ export default function ItemRow({ item, mobile = false }: Props) {
           <input
             type="date"
             name="fechaPedidoProveedor"
-            defaultValue={toInputDate(item.fechaPedidoProveedor)}
+            defaultValue={toDateInputValue(item.fechaPedidoProveedor)}
             className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
         </div>
@@ -75,7 +71,7 @@ export default function ItemRow({ item, mobile = false }: Props) {
           <input
             type="date"
             name="fechaLlegadaProveedor"
-            defaultValue={toInputDate(item.fechaLlegadaProveedor)}
+            defaultValue={toDateInputValue(item.fechaLlegadaProveedor)}
             className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
         </div>

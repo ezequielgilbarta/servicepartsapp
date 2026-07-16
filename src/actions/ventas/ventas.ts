@@ -3,13 +3,14 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { dateInputToInstant } from '@/lib/datetime'
 
 export async function crearVenta(formData: FormData) {
   const clienteId = formData.get('clienteId') as string
   const total = parseFloat(formData.get('total') as string)
   const costoEnvio = formData.get('costoEnvio') ? parseFloat(formData.get('costoEnvio') as string) : null
   const tipoEntrega = formData.get('tipoEntrega') as string
-  const fechaEntrega = formData.get('fechaEntrega') ? new Date(formData.get('fechaEntrega') as string) : null
+  const fechaEntrega = dateInputToInstant(formData.get('fechaEntrega') as string | null)
   const notas = formData.get('notas') as string || null
 
   if (!clienteId || !total || !tipoEntrega) {

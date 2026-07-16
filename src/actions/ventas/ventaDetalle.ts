@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { dateInputToInstant } from '@/lib/datetime'
 
 // ── Estado de venta ──────────────────────────────────────────────────────────
 
@@ -27,12 +28,8 @@ export async function actualizarItemProveedor(formData: FormData) {
   const itemId = formData.get('itemId') as string
   const ventaId = formData.get('ventaId') as string
   const codigoPedido = (formData.get('codigoPedido') as string) || null
-  const fechaPedidoProveedor = formData.get('fechaPedidoProveedor')
-    ? new Date(formData.get('fechaPedidoProveedor') as string)
-    : null
-  const fechaLlegadaProveedor = formData.get('fechaLlegadaProveedor')
-    ? new Date(formData.get('fechaLlegadaProveedor') as string)
-    : null
+  const fechaPedidoProveedor = dateInputToInstant(formData.get('fechaPedidoProveedor') as string | null)
+  const fechaLlegadaProveedor = dateInputToInstant(formData.get('fechaLlegadaProveedor') as string | null)
 
   await prisma.ventaItem.update({
     where: { id: itemId },
@@ -47,9 +44,7 @@ export async function registrarPago(formData: FormData) {
   const ventaId = formData.get('ventaId') as string
   const monto = parseFloat(formData.get('monto') as string)
   const tipo = formData.get('tipo') as string
-  const fecha = formData.get('fecha')
-    ? new Date(formData.get('fecha') as string)
-    : new Date()
+  const fecha = dateInputToInstant(formData.get('fecha') as string | null) ?? new Date()
 
   if (!ventaId || !monto || !tipo) return
 

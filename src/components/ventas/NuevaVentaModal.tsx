@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { crearVenta } from '@/actions/ventas/ventas'
 import { formatMoneyInput, parseMoneyInput } from '@/lib/utils'
+import { todayInputValue } from '@/lib/datetime'
 
 type Cliente = { id: string; nombre: string; telefono: string }
 
@@ -13,9 +14,7 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
   const [total, setTotal] = useState('')
   const [costoEnvio, setCostoEnvio] = useState('')
 
-  const manana = new Date()
-  manana.setDate(manana.getDate() + 1)
-  const minFecha = manana.toISOString().split('T')[0]
+  const minFecha = todayInputValue()
 
   async function handleSubmit(formData: FormData) {
     setLoading(true)

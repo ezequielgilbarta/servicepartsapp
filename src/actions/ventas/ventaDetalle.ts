@@ -46,7 +46,9 @@ export async function registrarPago(formData: FormData) {
   const tipo = formData.get('tipo') as string
   const fecha = dateInputToInstant(formData.get('fecha') as string | null) ?? new Date()
 
-  if (!ventaId || !monto || !tipo) return
+  if (!ventaId || !monto || !tipo) {
+    throw new Error('Faltan campos obligatorios')
+  }
 
   await prisma.pago.create({
     data: { ventaId, monto, tipo, fecha },

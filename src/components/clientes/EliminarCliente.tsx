@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react'
 import { eliminarCliente } from '@/actions/clientes/clientes'
+import { isNextNavigationError, getActionErrorMessage } from '@/lib/actionError'
 
 type Props = {
   clienteId: string
@@ -17,7 +18,14 @@ export default function EliminarCliente({ clienteId, tieneVentas }: Props) {
       return
     }
     if (!confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.')) return
-    startTransition(() => eliminarCliente(clienteId))
+    startTransition(async () => {
+      try {
+        await eliminarCliente(clienteId)
+      } catch (err) {
+        if (isNextNavigationError(err)) throw err
+        alert(getActionErrorMessage(err))
+      }
+    })
   }
 
   return (

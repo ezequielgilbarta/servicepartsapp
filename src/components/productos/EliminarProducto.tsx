@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react'
 import { eliminarProducto } from '@/actions/productos/productos'
+import { isNextNavigationError, getActionErrorMessage } from '@/lib/actionError'
 
 type Props = {
   productoId: string
@@ -17,7 +18,14 @@ export default function EliminarProducto({ productoId, tieneVentas }: Props) {
       return
     }
     if (!confirm('¿Eliminar este producto? Esta acción no se puede deshacer.')) return
-    startTransition(() => eliminarProducto(productoId))
+    startTransition(async () => {
+      try {
+        await eliminarProducto(productoId)
+      } catch (err) {
+        if (isNextNavigationError(err)) throw err
+        alert(getActionErrorMessage(err))
+      }
+    })
   }
 
   return (

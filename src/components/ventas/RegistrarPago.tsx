@@ -5,12 +5,15 @@ import { registrarPago } from '@/actions/ventas/ventaDetalle'
 import { TIPOS_PAGO, TIPO_PAGO_LABELS } from '@/lib/utils'
 import { formatMoneyInput, formatMoneyFromNumber, parseMoneyInput } from '@/lib/utils'
 import { todayInputValue } from '@/lib/datetime'
+import { isNextNavigationError, getActionErrorMessage } from '@/lib/actionError'
+import FormError from '@/components/ui/FormError'
 
 type Props = { ventaId: string; saldoPendiente: number }
 
 export default function RegistrarPago({ ventaId, saldoPendiente }: Props) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
   const [monto, setMonto] = useState(
     saldoPendiente > 0
       ? formatMoneyFromNumber(saldoPendiente)
@@ -18,10 +21,16 @@ export default function RegistrarPago({ ventaId, saldoPendiente }: Props) {
   )
 
   function handleSubmit(formData: FormData) {
+    setError(null)
     formData.append('ventaId', ventaId)
     startTransition(async () => {
-      await registrarPago(formData)
-      setOpen(false)
+      try {
+        await registrarPago(formData)
+        setOpen(false)
+      } catch (err) {
+        if (isNextNavigationError(err)) throw err
+        setError(getActionErrorMessage(err))
+      }
     })
   }
 
@@ -94,6 +103,8 @@ export default function RegistrarPago({ ventaId, saldoPendiente }: Props) {
               ))}
             </div>
           </div>
+
+          <FormError message={error} />
 
           <div className="flex gap-2 pt-1">
             <button

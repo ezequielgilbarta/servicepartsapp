@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { formatMoneyInput, formatMoneyFromNumber, parseMoneyInput } from '@/lib/utils'
+import { isNextNavigationError, getActionErrorMessage } from '@/lib/actionError'
+import FormError from '@/components/ui/FormError'
 
 const TIPOS_ELECTRODOMESTICO = [
   'Lavarropas', 'Heladera', 'Freezer', 'Lavavajillas',
@@ -39,9 +41,24 @@ export default function ProductoForm({ action, producto, submitLabel }: Props) {
       ? formatMoneyFromNumber(producto.precioReferencia)
       : ''
   )
-  
+
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
+
+  function handleSubmit(formData: FormData) {
+    setError(null)
+    startTransition(async () => {
+      try {
+        await action(formData)
+      } catch (err) {
+        if (isNextNavigationError(err)) throw err
+        setError(getActionErrorMessage(err))
+      }
+    })
+  }
+
   return (
-    <form action={action} className="space-y-6">
+    <form action={handleSubmit} className="space-y-6">
       {producto && <input type="hidden" name="id" value={producto.id} />}
 
       {/* Identificación */}
@@ -194,6 +211,8 @@ export default function ProductoForm({ action, producto, submitLabel }: Props) {
         </div>
       </div>
 
+      <FormError message={error} />
+
       <div className="flex gap-3 pt-2">
         <a
           href="/productos"
@@ -203,9 +222,10 @@ export default function ProductoForm({ action, producto, submitLabel }: Props) {
         </a>
         <button
           type="submit"
-          className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+          disabled={isPending}
+          className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
         >
-          {submitLabel}
+          {isPending ? 'Guardando...' : submitLabel}
         </button>
       </div>
     </form>

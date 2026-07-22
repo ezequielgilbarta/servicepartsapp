@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { crearVenta } from '@/actions/ventas/ventas'
 import { formatMoneyInput, parseMoneyInput } from '@/lib/utils'
 import { todayInputValue } from '@/lib/datetime'
+import { isNextNavigationError, getActionErrorMessage } from '@/lib/actionError'
+import FormError from '@/components/ui/FormError'
 
 type Cliente = { id: string; nombre: string; telefono: string }
 
@@ -13,12 +15,21 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState('')
   const [costoEnvio, setCostoEnvio] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   const minFecha = todayInputValue()
 
   async function handleSubmit(formData: FormData) {
+    setError(null)
     setLoading(true)
-    await crearVenta(formData)
+    try {
+      await crearVenta(formData)
+    } catch (err) {
+      if (isNextNavigationError(err)) throw err
+      setError(getActionErrorMessage(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   function handleClose() {
@@ -27,6 +38,7 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
     setTotal('')
     setCostoEnvio('')
     setLoading(false)
+    setError(null)
   }
 
   return (
@@ -155,6 +167,8 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
                 />
               </div>
+
+              <FormError message={error} />
 
               <div className="flex gap-3 pb-2 pt-1">
                 <button

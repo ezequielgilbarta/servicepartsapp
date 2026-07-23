@@ -1,15 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { crearVenta } from '@/actions/ventas/ventas'
-import { formatMoneyInput, parseMoneyInput } from '@/lib/utils'
+import { formatMoneyInput, formatMoneyFromNumber, parseMoneyInput, formatCurrency } from '@/lib/utils'
 import { todayInputValue } from '@/lib/datetime'
 import { isNextNavigationError, getActionErrorMessage } from '@/lib/actionError'
 import FormError from '@/components/ui/FormError'
 
 type Cliente = { id: string; nombre: string; telefono: string }
+type Producto = {
+  id: string
+  nombre: string
+  marca: string
+  modelo: string
+  codigoInterno: string
+  precioReferencia: number | null
+}
 
-export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
+type ItemCarrito = {
+  productoId: string
+  nombre: string
+  marca: string
+  modelo: string
+  codigoInterno: string
+  cantidad: number
+  precioUnitario: number
+}
+
+export default function NuevaVentaModal({ clientes, productos }: { clientes: Cliente[]; productos: Producto[] }) {
   const [open, setOpen] = useState(false)
   const [tipoEntrega, setTipoEntrega] = useState('RETIRO')
   const [loading, setLoading] = useState(false)
@@ -17,10 +35,124 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
   const [costoEnvio, setCostoEnvio] = useState('')
   const [error, setError] = useState<string | null>(null)
 
+  // ── Selector de productos ──
+  const [items, setItems] = useState<ItemCarrito[]>([])
+  const [busqueda, setBusqueda] = useState('')
+  const [mostrarResultados, setMostrarResultados] = useState(false)
+  const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null)
+  const [cantidadNueva, setCantidadNueva] = useState('1')
+  const [precioNuevo, setPrecioNuevo] = useState('')
+  const [itemError, setItemError] = useState<string | null>(null)
+
   const minFecha = todayInputValue()
+
+  const subtotal = useMemo(
+    () => items.reduce((s, i) => s + i.cantidad * i.precioUnitario, 0),
+    [items]
+  )
+
+  // El total se recalcula cada vez que cambia el carrito, pero sigue siendo editable a mano
+  // (por si hace falta un ajuste o descuento puntual sobre el total sugerido).
+  useEffect(() => {
+    setTotal(formatMoneyFromNumber(subtotal))
+  }, [subtotal])
+
+  const resultadosBusqueda = useMemo(() => {
+    const q = busqueda.trim().toLowerCase()
+    if (!q) return []
+    return productos
+      .filter((p) =>
+        `${p.nombre} ${p.marca} ${p.modelo} ${p.codigoInterno}`.toLowerCase().includes(q)
+      )
+      .slice(0, 8)
+  }, [busqueda, productos])
+
+  function handleSeleccionarProducto(p: Producto) {
+    setProductoSeleccionado(p)
+    setBusqueda('')
+    setMostrarResultados(false)
+    setCantidadNueva('1')
+    setPrecioNuevo(p.precioReferencia != null ? formatMoneyFromNumber(p.precioReferencia) : '')
+    setItemError(null)
+  }
+
+  function handleCancelarSeleccion() {
+    setProductoSeleccionado(null)
+    setCantidadNueva('1')
+    setPrecioNuevo('')
+    setItemError(null)
+  }
+
+  function handleAgregarItem() {
+    if (!productoSeleccionado) return
+
+    const cantidadNum = parseInt(cantidadNueva, 10)
+    const precioNum = parseFloat(parseMoneyInput(precioNuevo))
+
+    if (!Number.isFinite(cantidadNum) || cantidadNum <= 0) {
+      setItemError('La cantidad tiene que ser mayor a 0')
+      return
+    }
+    if (!Number.isFinite(precioNum) || precioNum < 0) {
+      setItemError('Ingresá un precio unitario válido')
+      return
+    }
+
+    setItems((prev) => {
+      const idx = prev.findIndex((i) => i.productoId === productoSeleccionado.id)
+      if (idx >= 0) {
+        const copia = [...prev]
+        copia[idx] = { ...copia[idx], cantidad: copia[idx].cantidad + cantidadNum }
+        return copia
+      }
+      return [
+        ...prev,
+        {
+          productoId: productoSeleccionado.id,
+          nombre: productoSeleccionado.nombre,
+          marca: productoSeleccionado.marca,
+          modelo: productoSeleccionado.modelo,
+          codigoInterno: productoSeleccionado.codigoInterno,
+          cantidad: cantidadNum,
+          precioUnitario: precioNum,
+        },
+      ]
+    })
+
+    handleCancelarSeleccion()
+  }
+
+  function handleEditarItem(index: number, campo: 'cantidad' | 'precioUnitario', valor: number) {
+    setItems((prev) => {
+      const copia = [...prev]
+      copia[index] = { ...copia[index], [campo]: valor }
+      return copia
+    })
+  }
+
+  function handleQuitarItem(index: number) {
+    setItems((prev) => prev.filter((_, i) => i !== index))
+  }
 
   async function handleSubmit(formData: FormData) {
     setError(null)
+
+    if (items.length === 0) {
+      setError('Agregá al menos un producto a la venta')
+      return
+    }
+
+    formData.set(
+      'items',
+      JSON.stringify(
+        items.map((i) => ({
+          productoId: i.productoId,
+          cantidad: i.cantidad,
+          precioUnitario: i.precioUnitario,
+        }))
+      )
+    )
+
     setLoading(true)
     try {
       await crearVenta(formData)
@@ -39,6 +171,13 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
     setCostoEnvio('')
     setLoading(false)
     setError(null)
+    setItems([])
+    setBusqueda('')
+    setMostrarResultados(false)
+    setProductoSeleccionado(null)
+    setCantidadNueva('1')
+    setPrecioNuevo('')
+    setItemError(null)
   }
 
   return (
@@ -82,6 +221,169 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
                 </select>
               </div>
 
+              {/* Productos */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Productos <span className="text-red-500">*</span>
+                </label>
+
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-3">
+                  {/* Buscador */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={busqueda}
+                      onChange={(e) => {
+                        setBusqueda(e.target.value)
+                        setMostrarResultados(true)
+                      }}
+                      onFocus={() => setMostrarResultados(true)}
+                      placeholder="Buscar por nombre, marca o código..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+                    />
+                    {mostrarResultados && busqueda.trim() && (
+                      <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
+                        {resultadosBusqueda.length === 0 ? (
+                          <p className="px-3 py-2 text-sm text-gray-400">Sin resultados</p>
+                        ) : (
+                          resultadosBusqueda.map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => handleSeleccionarProducto(p)}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                            >
+                              <p className="font-medium text-gray-900">{p.nombre}</p>
+                              <p className="text-xs text-gray-400">
+                                {p.marca} · {p.modelo} · <span className="font-mono">{p.codigoInterno}</span>
+                              </p>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Producto seleccionado: cantidad + precio + agregar */}
+                  {productoSeleccionado && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{productoSeleccionado.nombre}</p>
+                          <p className="text-xs text-gray-400">
+                            {productoSeleccionado.marca} · {productoSeleccionado.modelo} ·{' '}
+                            <span className="font-mono">{productoSeleccionado.codigoInterno}</span>
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCancelarSeleccion}
+                          className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="w-20">
+                          <label className="block text-[10px] text-gray-400 mb-0.5">Cantidad</label>
+                          <input
+                            type="number"
+                            min={1}
+                            step={1}
+                            value={cantidadNueva}
+                            onChange={(e) => setCantidadNueva(e.target.value)}
+                            className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-[10px] text-gray-400 mb-0.5">Precio unitario</label>
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              value={precioNuevo}
+                              onChange={(e) => setPrecioNuevo(e.target.value)}
+                              onBlur={() => setPrecioNuevo(formatMoneyInput(precioNuevo))}
+                              placeholder="0,00"
+                              className="w-full pl-6 pr-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-end">
+                          <button
+                            type="button"
+                            onClick={handleAgregarItem}
+                            className="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+                          >
+                            Agregar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <FormError message={itemError} />
+
+                  {/* Carrito */}
+                  {items.length === 0 ? (
+                    <p className="text-xs text-gray-400 text-center py-2">Todavía no agregaste productos</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {items.map((item, idx) => (
+                        <div
+                          key={item.productoId}
+                          className="bg-white border border-gray-200 rounded-lg p-2.5 flex items-center gap-2"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{item.nombre}</p>
+                            <p className="text-xs text-gray-400 truncate">
+                              {item.marca} · <span className="font-mono">{item.codigoInterno}</span>
+                            </p>
+                          </div>
+                          <input
+                            type="number"
+                            min={1}
+                            step={1}
+                            value={item.cantidad}
+                            onChange={(e) => handleEditarItem(idx, 'cantidad', Math.max(1, parseInt(e.target.value, 10) || 1))}
+                            className="w-14 px-1.5 py-1 border border-gray-300 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-gray-900"
+                          />
+                          <span className="text-xs text-gray-400">×</span>
+                          <div className="relative w-24">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              defaultValue={formatMoneyFromNumber(item.precioUnitario)}
+                              onBlur={(e) => {
+                                const num = parseFloat(parseMoneyInput(e.target.value))
+                                handleEditarItem(idx, 'precioUnitario', Number.isFinite(num) && num >= 0 ? num : item.precioUnitario)
+                              }}
+                              className="w-full pl-5 pr-1.5 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                            />
+                          </div>
+                          <span className="text-sm font-medium text-gray-900 w-24 text-right shrink-0">
+                            {formatCurrency(item.cantidad * item.precioUnitario)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleQuitarItem(idx)}
+                            className="text-gray-400 hover:text-red-500 text-lg leading-none shrink-0"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex justify-between pt-1 text-sm">
+                        <span className="text-gray-500">Subtotal productos</span>
+                        <span className="font-semibold text-gray-900">{formatCurrency(subtotal)}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Total */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -100,6 +402,7 @@ export default function NuevaVentaModal({ clientes }: { clientes: Cliente[] }) {
                   />
                   <input type="hidden" name="total" value={parseMoneyInput(total)} />
                 </div>
+                <p className="mt-1 text-xs text-gray-400">Se sugiere según los productos cargados; se puede ajustar a mano.</p>
               </div>
 
               {/* Tipo entrega */}

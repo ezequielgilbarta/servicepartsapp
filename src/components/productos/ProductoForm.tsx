@@ -6,7 +6,7 @@ import { isNextNavigationError, getActionErrorMessage } from '@/lib/actionError'
 import FormError from '@/components/ui/FormError'
 
 const TIPOS_ELECTRODOMESTICO = [
-  'Lavarropas', 'Heladera', 'Freezer', 'Lavavajillas',
+  'Lavarropas', 'Heladera', 'Freezer', 'Lavavajillas', 'Secarropas', 'Lavasecarropas',
   'Microondas', 'Horno', 'Cocina', 'Aire acondicionado', 'Termotanque', 'Otro',
 ]
 

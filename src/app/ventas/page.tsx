@@ -22,13 +22,24 @@ export default async function VentasPage({ searchParams }: PageProps) {
 
   const estadoFiltro = searchParams.estado
 
-  const [ventas, clientes] = await Promise.all([
+  const [ventas, clientes, productos] = await Promise.all([
     prisma.venta.findMany({
       where: estadoFiltro ? { estado: estadoFiltro } : undefined,
       include: { cliente: true, pagos: true, items: true },
       orderBy: { createdAt: 'desc' },
     }),
     prisma.cliente.findMany({ orderBy: { nombre: 'asc' } }),
+    prisma.producto.findMany({
+      orderBy: { nombre: 'asc' },
+      select: {
+        id: true,
+        nombre: true,
+        marca: true,
+        modelo: true,
+        codigoInterno: true,
+        precioReferencia: true,
+      },
+    }),
   ])
 
   return (
@@ -38,7 +49,7 @@ export default async function VentasPage({ searchParams }: PageProps) {
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-2xl font-semibold text-gray-900">Ventas</h1>
-          <NuevaVentaModal clientes={clientes} />
+          <NuevaVentaModal clientes={clientes} productos={productos} />
         </div>
 
         {/* Filtros */}

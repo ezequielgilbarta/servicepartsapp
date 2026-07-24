@@ -4,22 +4,22 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { dateInputToInstant } from '@/lib/datetime'
 
-// ── Estado de venta ──────────────────────────────────────────────────────────
+// ── Cancelación de venta ─────────────────────────────────────────────────────
 
-export async function actualizarEstadoVenta(ventaId: string, estado: string) {
+export async function actualizarCancelada(ventaId: string, cancelada: boolean) {
   await prisma.venta.update({
     where: { id: ventaId },
-    data: { estado },
+    data: { cancelada },
   })
   revalidatePath(`/ventas/${ventaId}`)
 }
 
-// ── Items: proveedor estado + fechas + codigoPedido ──────────────────────────
+// ── Items: estado de pedido + fechas + codigoPedido ──────────────────────────
 
-export async function actualizarProveedorEstado(itemId: string, ventaId: string, proveedorEstado: string) {
+export async function actualizarEstadoPedido(itemId: string, ventaId: string, estadoPedido: string) {
   await prisma.ventaItem.update({
     where: { id: itemId },
-    data: { proveedorEstado },
+    data: { estadoPedido },
   })
   revalidatePath(`/ventas/${ventaId}`)
 }
@@ -30,10 +30,11 @@ export async function actualizarItemProveedor(formData: FormData) {
   const codigoPedido = (formData.get('codigoPedido') as string) || null
   const fechaPedidoProveedor = dateInputToInstant(formData.get('fechaPedidoProveedor') as string | null)
   const fechaLlegadaProveedor = dateInputToInstant(formData.get('fechaLlegadaProveedor') as string | null)
+  const fechaEntregaCliente = dateInputToInstant(formData.get('fechaEntregaCliente') as string | null)
 
   await prisma.ventaItem.update({
     where: { id: itemId },
-    data: { codigoPedido, fechaPedidoProveedor, fechaLlegadaProveedor },
+    data: { codigoPedido, fechaPedidoProveedor, fechaLlegadaProveedor, fechaEntregaCliente },
   })
   revalidatePath(`/ventas/${ventaId}`)
 }

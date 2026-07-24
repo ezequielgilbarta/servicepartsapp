@@ -5,8 +5,9 @@ import NuevaVentaModal from '@/components/ventas/NuevaVentaModal'
 import FiltroEstado from '@/components/ventas/FiltroEstado'
 import Link from 'next/link'
 import {
-  ESTADO_VENTA_LABELS,
-  ESTADO_VENTA_COLORS,
+  ESTADO_PAGO_LABELS,
+  ESTADO_PAGO_COLORS,
+  getEstadoPago,
   TIPO_ENTREGA_LABELS,
   formatCurrency,
   formatDate,
@@ -22,9 +23,8 @@ export default async function VentasPage({ searchParams }: PageProps) {
 
   const estadoFiltro = searchParams.estado
 
-  const [ventas, clientes, productos] = await Promise.all([
+  const [todasLasVentas, clientes, productos] = await Promise.all([
     prisma.venta.findMany({
-      where: estadoFiltro ? { estado: estadoFiltro } : undefined,
       include: { cliente: true, pagos: true, items: true },
       orderBy: { createdAt: 'desc' },
     }),
@@ -41,6 +41,16 @@ export default async function VentasPage({ searchParams }: PageProps) {
       },
     }),
   ])
+
+  // El estado de pago se calcula (no vive en la base), así que el filtro se
+  // aplica en JS después de traer los pagos de cada venta.
+  const ventas = todasLasVentas.filter((venta) => {
+    if (!estadoFiltro) return true
+    if (estadoFiltro === 'CANCELADAS') return venta.cancelada
+    if (venta.cancelada) return false
+    const totalPagado = venta.pagos.reduce((s, p) => s + p.monto, 0)
+    return getEstadoPago(totalPagado, venta.total + (venta.costoEnvio ?? 0)) === estadoFiltro
+  })
 
   return (
     <AppLayout>
@@ -86,7 +96,7 @@ export default async function VentasPage({ searchParams }: PageProps) {
                   {ventas.map((venta) => {
                     const totalPagado = venta.pagos.reduce((s, p) => s + p.monto, 0)
                     const saldo = venta.total + (venta.costoEnvio ?? 0) - totalPagado
-                    const estado = venta.estado
+                    const estadoPago = getEstadoPago(totalPagado, venta.total + (venta.costoEnvio ?? 0))
 
                     return (
                       <tr key={venta.id} className="hover:bg-gray-50 transition-colors">
@@ -95,9 +105,15 @@ export default async function VentasPage({ searchParams }: PageProps) {
                           <p className="text-xs text-gray-400">{venta.cliente.telefono}</p>
                         </td>
                         <td className="px-5 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ESTADO_VENTA_COLORS[estado]}`}>
-                            {ESTADO_VENTA_LABELS[estado]}
-                          </span>
+                          {venta.cancelada ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                              Cancelada
+                            </span>
+                          ) : (
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ESTADO_PAGO_COLORS[estadoPago]}`}>
+                              {ESTADO_PAGO_LABELS[estadoPago]}
+                            </span>
+                          )}
                         </td>
                         <td className="px-5 py-4 text-sm text-gray-600">
                           {TIPO_ENTREGA_LABELS[venta.tipoEntrega]}
@@ -130,7 +146,7 @@ export default async function VentasPage({ searchParams }: PageProps) {
               {ventas.map((venta) => {
                 const totalPagado = venta.pagos.reduce((s, p) => s + p.monto, 0)
                 const saldo = venta.total + (venta.costoEnvio ?? 0) - totalPagado
-                const estado = venta.estado
+                const estadoPago = getEstadoPago(totalPagado, venta.total + (venta.costoEnvio ?? 0))
 
                 return (
                   <Link
@@ -143,9 +159,15 @@ export default async function VentasPage({ searchParams }: PageProps) {
                         <p className="text-sm font-semibold text-gray-900">{venta.cliente.nombre}</p>
                         <p className="text-xs text-gray-400 mt-0.5">{venta.cliente.telefono}</p>
                       </div>
-                      <span className={`shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ESTADO_VENTA_COLORS[estado]}`}>
-                        {ESTADO_VENTA_LABELS[estado]}
-                      </span>
+                      {venta.cancelada ? (
+                        <span className="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                          Cancelada
+                        </span>
+                      ) : (
+                        <span className={`shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ESTADO_PAGO_COLORS[estadoPago]}`}>
+                          {ESTADO_PAGO_LABELS[estadoPago]}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <div className="text-gray-500">

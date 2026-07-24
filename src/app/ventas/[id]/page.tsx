@@ -11,6 +11,7 @@ import EditarNotas from '@/components/ventas/EditarNotas'
 import {
   formatCurrency,
   formatDate,
+  getEstadoPago,
   TIPO_ENTREGA_LABELS,
   TIPO_PAGO_LABELS,
 } from '@/lib/utils'
@@ -33,10 +34,11 @@ export default async function VentaDetallePage({ params }: Props) {
 
   const totalPagado = venta.pagos.reduce((s, p) => s + p.monto, 0)
   const saldoPendiente = venta.total + (venta.costoEnvio ?? 0) - totalPagado
-  const itemsRecibidos = venta.items.filter((i) => i.proveedorEstado === 'RECIBIDO').length
+  const estadoPago = getEstadoPago(totalPagado, venta.total + (venta.costoEnvio ?? 0))
+  const itemsEntregados = venta.items.filter((i) => i.estadoPedido === 'ENTREGADO').length
   const totalItems = venta.items.length
-  const todosRecibidos = totalItems > 0 && itemsRecibidos === totalItems
-  const progresoPct = totalItems > 0 ? Math.round((itemsRecibidos / totalItems) * 100) : 0
+  const todosEntregados = totalItems > 0 && itemsEntregados === totalItems
+  const progresoPct = totalItems > 0 ? Math.round((itemsEntregados / totalItems) * 100) : 0
 
   return (
     <AppLayout>
@@ -61,7 +63,7 @@ export default async function VentaDetallePage({ params }: Props) {
               )}
             </div>
           </div>
-          <CambiarEstado ventaId={venta.id} estadoActual={venta.estado} todosRecibidos={todosRecibidos} />
+          <CambiarEstado ventaId={venta.id} estadoPago={estadoPago} cancelada={venta.cancelada} />
         </div>
 
         {/* Info rápida - 2 cols mobile, 4 desktop */}
@@ -79,11 +81,11 @@ export default async function VentaDetallePage({ params }: Props) {
             <p className="text-sm font-medium text-gray-900">{TIPO_ENTREGA_LABELS[venta.tipoEntrega] ?? venta.tipoEntrega}</p>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <p className="text-xs text-gray-400 mb-1">Items recibidos</p>
-            <p className="text-sm font-medium text-gray-900">{itemsRecibidos} de {totalItems}</p>
+            <p className="text-xs text-gray-400 mb-1">Items entregados</p>
+            <p className="text-sm font-medium text-gray-900">{itemsEntregados} de {totalItems}</p>
             <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${todosRecibidos ? 'bg-green-500' : 'bg-blue-400'}`}
+                className={`h-full rounded-full transition-all ${todosEntregados ? 'bg-green-500' : 'bg-blue-400'}`}
                 style={{ width: `${progresoPct}%` }}
               />
             </div>
@@ -104,7 +106,7 @@ export default async function VentaDetallePage({ params }: Props) {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {['Producto', 'Cant. × Precio', 'Estado proveedor', 'Seguimiento'].map((h) => (
+                      {['Producto', 'Cant. × Precio', 'Estado pedido', 'Seguimiento'].map((h) => (
                         <th key={h} className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-5 py-3">{h}</th>
                       ))}
                     </tr>

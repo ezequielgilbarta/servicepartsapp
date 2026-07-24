@@ -38,7 +38,7 @@ model Producto {
 model Venta {
   id           String    @id @default(cuid())
   clienteId    String
-  estado       String    @default("PRESUPUESTO")
+  cancelada    Boolean   @default(false)
   total        Float
   costoEnvio   Float?
   tipoEntrega  String
@@ -57,10 +57,11 @@ model VentaItem {
   productoId            String
   cantidad              Int
   precioUnitario        Float
-  proveedorEstado       String    @default("NO_PEDIDO")
+  estadoPedido          String    @default("PENDIENTE")
   codigoPedido          String?
   fechaPedidoProveedor  DateTime?
   fechaLlegadaProveedor DateTime?
+  fechaEntregaCliente   DateTime?
 
   venta    Venta    @relation(fields: [ventaId], references: [id], onDelete: Cascade)
   producto Producto @relation(fields: [productoId], references: [id])

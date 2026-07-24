@@ -1,38 +1,44 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ESTADO_VENTA_LABELS } from '@/lib/utils'
+import { ESTADO_PAGO_LABELS } from '@/lib/utils'
 
-const ESTADOS = ['TODOS', 'PRESUPUESTO', 'SENA_RECIBIDA', 'EN_PROGRESO', 'LISTO_ENTREGA', 'ENTREGADO', 'CANCELADO'] as const
+const FILTROS = ['TODOS', 'SIN_PAGOS', 'SENA_RECIBIDA', 'FINALIZADA', 'CANCELADAS'] as const
 
 export default function FiltroEstado() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const estadoActual = searchParams.get('estado') || 'TODOS'
+  const filtroActual = searchParams.get('estado') || 'TODOS'
 
-  function handleChange(estado: string) {
+  function handleChange(filtro: string) {
     const params = new URLSearchParams(searchParams.toString())
-    if (estado === 'TODOS') {
+    if (filtro === 'TODOS') {
       params.delete('estado')
     } else {
-      params.set('estado', estado)
+      params.set('estado', filtro)
     }
     router.push(`/ventas?${params.toString()}`)
   }
 
+  function label(filtro: string) {
+    if (filtro === 'TODOS') return 'Todos'
+    if (filtro === 'CANCELADAS') return 'Canceladas'
+    return ESTADO_PAGO_LABELS[filtro as keyof typeof ESTADO_PAGO_LABELS]
+  }
+
   return (
     <div className="flex flex-wrap gap-2">
-      {ESTADOS.map((estado) => (
+      {FILTROS.map((filtro) => (
         <button
-          key={estado}
-          onClick={() => handleChange(estado)}
+          key={filtro}
+          onClick={() => handleChange(filtro)}
           className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-            estadoActual === estado
+            filtroActual === filtro
               ? 'bg-gray-900 text-white'
               : 'bg-white text-gray-600 border border-gray-300 hover:border-gray-400'
           }`}
         >
-          {estado === 'TODOS' ? 'Todos' : ESTADO_VENTA_LABELS[estado as keyof typeof ESTADO_VENTA_LABELS]}
+          {label(filtro)}
         </button>
       ))}
     </div>

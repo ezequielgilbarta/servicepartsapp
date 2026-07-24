@@ -74,12 +74,12 @@ export async function crearVenta(formData: FormData) {
       tipoEntrega,
       fechaEntrega,
       notas,
-      estado: 'PRESUPUESTO',
       items: {
         create: items.map((i) => ({
           productoId: i.productoId,
           cantidad: i.cantidad,
           precioUnitario: i.precioUnitario,
+          estadoPedido: 'PENDIENTE',
         })),
       },
     },

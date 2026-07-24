@@ -1,4 +1,4 @@
-import { PrismaClient, EstadoVenta, TipoEntrega, ProveedorEstado, TipoPago } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -62,14 +62,13 @@ async function main() {
     },
   })
 
-  // Venta 1 - En progreso
+  // Venta 1 - seña recibida, con productos en distintos estados de pedido
   const venta1 = await prisma.venta.create({
     data: {
       clienteId: cliente1.id,
-      estado: EstadoVenta.EN_PROGRESO,
       total: 16000,
       costoEnvio: 1500,
-      tipoEntrega: TipoEntrega.ENVIO,
+      tipoEntrega: 'ENVIO',
       fechaEntrega: new Date('2025-06-15'),
       notas: 'Entregar en horario de tarde',
       items: {
@@ -78,14 +77,14 @@ async function main() {
             productoId: producto1.id,
             cantidad: 1,
             precioUnitario: 7000,
-            proveedorEstado: ProveedorEstado.EN_CAMINO,
+            estadoPedido: 'PEDIDO',
             fechaPedidoProveedor: new Date('2025-05-20'),
           },
           {
             productoId: producto2.id,
             cantidad: 2,
             precioUnitario: 4500,
-            proveedorEstado: ProveedorEstado.RECIBIDO,
+            estadoPedido: 'RECIBIDO',
             fechaPedidoProveedor: new Date('2025-05-18'),
             fechaLlegadaProveedor: new Date('2025-05-25'),
           },
@@ -95,7 +94,7 @@ async function main() {
         create: [
           {
             monto: 5000,
-            tipo: TipoPago.SENA,
+            tipo: 'SENA',
             fecha: new Date('2025-05-15'),
           },
         ],
@@ -103,22 +102,22 @@ async function main() {
     },
   })
 
-  // Venta 2 - Lista para entrega
+  // Venta 2 - finalizada (pagada por completo), producto ya entregado
   await prisma.venta.create({
     data: {
       clienteId: cliente2.id,
-      estado: EstadoVenta.LISTO_ENTREGA,
       total: 9800,
-      tipoEntrega: TipoEntrega.RETIRO,
+      tipoEntrega: 'RETIRO',
       items: {
         create: [
           {
             productoId: producto3.id,
             cantidad: 1,
             precioUnitario: 9800,
-            proveedorEstado: ProveedorEstado.RECIBIDO,
+            estadoPedido: 'ENTREGADO',
             fechaPedidoProveedor: new Date('2025-05-10'),
             fechaLlegadaProveedor: new Date('2025-05-22'),
+            fechaEntregaCliente: new Date('2025-05-23'),
           },
         ],
       },
@@ -126,12 +125,12 @@ async function main() {
         create: [
           {
             monto: 3000,
-            tipo: TipoPago.SENA,
+            tipo: 'SENA',
             fecha: new Date('2025-05-08'),
           },
           {
             monto: 6800,
-            tipo: TipoPago.SALDO,
+            tipo: 'SALDO',
             fecha: new Date('2025-05-23'),
           },
         ],

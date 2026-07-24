@@ -1,33 +1,37 @@
-export const ESTADO_VENTA_LABELS: Record<string, string> = {
-  PRESUPUESTO: 'Presupuesto',
+// Estado de pago de la venta: se calcula a partir de los pagos
+// registrados, no se guarda en la base.
+export type EstadoPago = 'SIN_PAGOS' | 'SENA_RECIBIDA' | 'FINALIZADA'
+
+export function getEstadoPago(totalPagado: number, totalConEnvio: number): EstadoPago {
+  if (totalPagado <= 0) return 'SIN_PAGOS'
+  if (totalPagado >= totalConEnvio) return 'FINALIZADA'
+  return 'SENA_RECIBIDA'
+}
+
+export const ESTADO_PAGO_LABELS: Record<EstadoPago, string> = {
+  SIN_PAGOS: 'Sin pagos',
   SENA_RECIBIDA: 'Seña recibida',
-  EN_PROGRESO: 'En progreso',
-  LISTO_ENTREGA: 'Listo para entregar',
-  ENTREGADO: 'Entregado',
-  CANCELADO: 'Cancelado',
+  FINALIZADA: 'Finalizada',
 }
 
-export const ESTADO_VENTA_COLORS: Record<string, string> = {
-  PRESUPUESTO: 'bg-gray-100 text-gray-700',
+export const ESTADO_PAGO_COLORS: Record<EstadoPago, string> = {
+  SIN_PAGOS: 'bg-gray-100 text-gray-700',
   SENA_RECIBIDA: 'bg-blue-100 text-blue-700',
-  EN_PROGRESO: 'bg-yellow-100 text-yellow-700',
-  LISTO_ENTREGA: 'bg-green-100 text-green-700',
-  ENTREGADO: 'bg-emerald-100 text-emerald-700',
-  CANCELADO: 'bg-red-100 text-red-700',
+  FINALIZADA: 'bg-emerald-100 text-emerald-700',
 }
 
-export const PROVEEDOR_ESTADO_LABELS: Record<string, string> = {
-  NO_PEDIDO: 'No pedido',
+export const ESTADO_PEDIDO_LABELS: Record<string, string> = {
+  PENDIENTE: 'Pendiente',
   PEDIDO: 'Pedido',
-  EN_CAMINO: 'En camino',
   RECIBIDO: 'Recibido',
+  ENTREGADO: 'Entregado',
 }
 
-export const PROVEEDOR_ESTADO_COLORS: Record<string, string> = {
-  NO_PEDIDO: 'bg-gray-100 text-gray-600',
+export const ESTADO_PEDIDO_COLORS: Record<string, string> = {
+  PENDIENTE: 'bg-gray-100 text-gray-600',
   PEDIDO: 'bg-blue-100 text-blue-600',
-  EN_CAMINO: 'bg-orange-100 text-orange-600',
   RECIBIDO: 'bg-green-100 text-green-700',
+  ENTREGADO: 'bg-emerald-100 text-emerald-700',
 }
 
 export const TIPO_PAGO_LABELS: Record<string, string> = {
@@ -92,20 +96,8 @@ export function parseMoneyInput(valor: string) {
   return valor.replace(/\./g, '').replace(',', '.')
 }
 
-export const ESTADOS_VENTA = [
-  'PRESUPUESTO',
-  'SENA_RECIBIDA',
-  'EN_PROGRESO',
-  'LISTO_ENTREGA',
-  'ENTREGADO',
-  'CANCELADO',
-] as const
+export const ESTADOS_PAGO = ['SIN_PAGOS', 'SENA_RECIBIDA', 'FINALIZADA'] as const
 
-export const PROVEEDOR_ESTADOS = [
-  'NO_PEDIDO',
-  'PEDIDO',
-  'EN_CAMINO',
-  'RECIBIDO',
-] as const
+export const ESTADOS_PEDIDO = ['PENDIENTE', 'PEDIDO', 'RECIBIDO', 'ENTREGADO'] as const
 
 export const TIPOS_PAGO = ['SENA', 'SALDO', 'ENVIO'] as const

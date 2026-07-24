@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { actualizarProveedorEstado, actualizarItemProveedor } from '@/actions/ventas/ventaDetalle'
+import { actualizarEstadoPedido, actualizarItemProveedor } from '@/actions/ventas/ventaDetalle'
 import {
-  PROVEEDOR_ESTADO_LABELS,
-  PROVEEDOR_ESTADO_COLORS,
-  PROVEEDOR_ESTADOS,
+  ESTADO_PEDIDO_LABELS,
+  ESTADO_PEDIDO_COLORS,
+  ESTADOS_PEDIDO,
   formatDate,
   formatCurrency,
 } from '@/lib/utils'
@@ -16,10 +16,11 @@ type Item = {
   ventaId: string
   cantidad: number
   precioUnitario: number
-  proveedorEstado: string
+  estadoPedido: string
   codigoPedido: string | null
   fechaPedidoProveedor: Date | null
   fechaLlegadaProveedor: Date | null
+  fechaEntregaCliente: Date | null
   producto: {
     nombre: string
     marca: string
@@ -35,7 +36,7 @@ export default function ItemRow({ item, mobile = false }: Props) {
   const [isPending, startTransition] = useTransition()
 
   function handleEstado(estado: string) {
-    startTransition(() => actualizarProveedorEstado(item.id, item.ventaId, estado))
+    startTransition(() => actualizarEstadoPedido(item.id, item.ventaId, estado))
   }
 
   const seguimientoForm = (
@@ -76,6 +77,15 @@ export default function ItemRow({ item, mobile = false }: Props) {
           />
         </div>
       </div>
+      <div>
+        <label className="block text-[10px] text-gray-400 mb-0.5">Fecha entrega al cliente</label>
+        <input
+          type="date"
+          name="fechaEntregaCliente"
+          defaultValue={toDateInputValue(item.fechaEntregaCliente)}
+          className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+        />
+      </div>
       <div className="flex gap-2">
         <button
           type="submit"
@@ -105,7 +115,8 @@ export default function ItemRow({ item, mobile = false }: Props) {
       <div className="text-xs text-gray-500 space-y-0.5">
         {item.fechaPedidoProveedor && <p>Pedido: {formatDate(item.fechaPedidoProveedor)}</p>}
         {item.fechaLlegadaProveedor && <p>Llegada: {formatDate(item.fechaLlegadaProveedor)}</p>}
-        {!item.codigoPedido && !item.fechaPedidoProveedor && !item.fechaLlegadaProveedor && (
+        {item.fechaEntregaCliente && <p>Entrega: {formatDate(item.fechaEntregaCliente)}</p>}
+        {!item.codigoPedido && !item.fechaPedidoProveedor && !item.fechaLlegadaProveedor && !item.fechaEntregaCliente && (
           <p className="text-gray-300">—</p>
         )}
       </div>
@@ -120,13 +131,13 @@ export default function ItemRow({ item, mobile = false }: Props) {
 
   const estadoSelect = (
     <select
-      value={item.proveedorEstado}
+      value={item.estadoPedido}
       onChange={(e) => handleEstado(e.target.value)}
       disabled={isPending}
-      className={`text-xs font-medium px-2.5 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:opacity-50 ${PROVEEDOR_ESTADO_COLORS[item.proveedorEstado]}`}
+      className={`text-xs font-medium px-2.5 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:opacity-50 ${ESTADO_PEDIDO_COLORS[item.estadoPedido]}`}
     >
-      {PROVEEDOR_ESTADOS.map((e) => (
-        <option key={e} value={e}>{PROVEEDOR_ESTADO_LABELS[e]}</option>
+      {ESTADOS_PEDIDO.map((e) => (
+        <option key={e} value={e}>{ESTADO_PEDIDO_LABELS[e]}</option>
       ))}
     </select>
   )
